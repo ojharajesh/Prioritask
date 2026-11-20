@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: prioritask
+    runtime: python
+    buildCommand: pip install -r todo_app/requirements.txt
+    startCommand: python3 -m uvicorn todo_app.server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
