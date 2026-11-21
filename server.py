@@ -11,11 +11,15 @@ from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
 from typing import Optional, Dict, Any, List
 
-APP_TZ_NAME = os.environ.get("APP_TIMEZONE", "Asia/Kolkata")
+APP_TZ_NAME = os.environ.get("APP_TIMEZONE", "Asia/Kolkata").strip()
 try:
     APP_TZ = ZoneInfo(APP_TZ_NAME)
 except Exception:
-    APP_TZ = None
+    try:
+        APP_TZ = ZoneInfo("Asia/Kolkata")
+        APP_TZ_NAME = "Asia/Kolkata"
+    except Exception:
+        APP_TZ = None
 
 def get_now() -> datetime:
     """Returns timezone-aware or local datetime."""
@@ -29,18 +33,32 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .database import (
-    init_db,
-    add_task,
-    get_task,
-    update_task,
-    delete_task,
-    get_tasks,
-    get_latest_plan,
-    get_plan_history
-)
-from .parser import parse_task
-from .planner import execute_nightly_rollover
+try:
+    from .database import (
+        init_db,
+        add_task,
+        get_task,
+        update_task,
+        delete_task,
+        get_tasks,
+        get_latest_plan,
+        get_plan_history
+    )
+    from .parser import parse_task
+    from .planner import execute_nightly_rollover
+except ImportError:
+    from database import (
+        init_db,
+        add_task,
+        get_task,
+        update_task,
+        delete_task,
+        get_tasks,
+        get_latest_plan,
+        get_plan_history
+    )
+    from parser import parse_task
+    from planner import execute_nightly_rollover
 
 app = FastAPI(title="Personal To-Do App with Natural Language & 10 PM Rollover")
 

@@ -5,14 +5,24 @@ Rolls unfinished tasks to tomorrow and synthesizes an intelligent morning plan.
 
 from datetime import datetime, date, time, timedelta
 from typing import Dict, Any, List, Optional
-from .database import (
-    get_unfinished_tasks_before,
-    update_task,
-    get_tasks,
-    save_daily_plan,
-    get_db_connection,
-    get_latest_plan
-)
+try:
+    from .database import (
+        get_unfinished_tasks_before,
+        update_task,
+        get_tasks,
+        save_daily_plan,
+        get_db_connection,
+        get_latest_plan
+    )
+except ImportError:
+    from database import (
+        get_unfinished_tasks_before,
+        update_task,
+        get_tasks,
+        save_daily_plan,
+        get_db_connection,
+        get_latest_plan
+    )
 
 
 def execute_nightly_rollover(now: Optional[datetime] = None) -> Dict[str, Any]:
