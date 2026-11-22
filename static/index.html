@@ -73,8 +73,8 @@
       </div>
 
       <div class="flex items-center gap-1.5">
-        <!-- Quiet sync/refresh icon -->
-        <button onclick="triggerRollover(true)" title="Sync / Refresh" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition active:scale-90">
+        <!-- Quiet sync/refresh icon: force-reloads Home Screen icon to latest version -->
+        <button onclick="forceReload()" title="Reload Latest Version" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition active:scale-90">
           <i class="fa-solid fa-arrows-rotate text-xs"></i>
         </button>
         <!-- Dark mode switch -->
@@ -742,6 +742,13 @@
     function handleSortChange(sortVal) {
       currentSort = sortVal;
       filterAndRenderTasks();
+    }
+
+    function forceReload() {
+      showToast('Refreshing latest version...', 'fa-arrows-rotate text-indigo-400');
+      setTimeout(() => {
+        window.location.href = window.location.origin + '/?refresh=' + Date.now();
+      }, 250);
     }
 
     // Rollover

@@ -259,10 +259,14 @@ if os.path.exists(STATIC_DIR):
 
 @app.get("/")
 def serve_ui():
-    """Serves the main application page."""
+    """Serves the main application page with no-cache headers for instant iOS updates."""
     index_file = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_file):
-        return FileResponse(index_file)
+        response = FileResponse(index_file)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     return {"message": "To-Do app backend is running. UI not found."}
 
 
