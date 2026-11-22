@@ -42,7 +42,8 @@ try:
         delete_task,
         get_tasks,
         get_latest_plan,
-        get_plan_history
+        get_plan_history,
+        sync_tasks_from_client
     )
     from .parser import parse_task
     from .planner import execute_nightly_rollover
@@ -55,7 +56,8 @@ except ImportError:
         delete_task,
         get_tasks,
         get_latest_plan,
-        get_plan_history
+        get_plan_history,
+        sync_tasks_from_client
     )
     from parser import parse_task
     from planner import execute_nightly_rollover
@@ -102,6 +104,10 @@ def startup_event():
 
 
 # Request models
+class TasksSyncRequest(BaseModel):
+    tasks: List[Dict[str, Any]]
+
+
 class TaskCreateRequest(BaseModel):
     raw_text: str
 
@@ -186,6 +192,13 @@ def create_task(req: TaskCreateRequest):
     parsed = parse_task(raw)
     task = add_task(parsed)
     return {"success": True, "task": task, "parsed": parsed}
+
+
+@app.post("/api/tasks/sync")
+def sync_tasks_endpoint(req: TasksSyncRequest):
+    """Syncs tasks from client localStorage to persist across cloud restarts."""
+    tasks = sync_tasks_from_client(req.tasks)
+    return {"success": True, "count": len(tasks), "tasks": tasks}
 
 
 @app.put("/api/tasks/{task_id}")

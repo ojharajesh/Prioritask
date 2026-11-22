@@ -280,3 +280,58 @@ def get_plan_history(limit: int = 10) -> List[Dict[str, Any]]:
         cursor = conn.cursor()
         cursor.execute("SELECT id, plan_date, created_at, summary, rolled_tasks_count, total_tasks_count FROM daily_plans ORDER BY id DESC LIMIT ?", (limit,))
         return [dict(r) for r in cursor.fetchall()]
+
+
+def sync_tasks_from_client(client_tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Syncs tasks from client localStorage into the database.
+    Preserves completed states and newly created tasks across container restarts.
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        for t in client_tasks:
+            t_id = t.get('id')
+            title = t.get('title', 'Untitled')
+            status = t.get('status', 'pending')
+            prio = t.get('priority', 'medium').lower()
+            prio_score = PRIORITY_MAP.get(prio, 2)
+            deadline_dt = t.get('deadline_dt')
+            has_time = 1 if t.get('has_time') else 0
+            completed_at = t.get('completed_at')
+            rolled_over_count = t.get('rolled_over_count', 0)
+            created_at = t.get('created_at') or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            # Check if task already exists by id
+            if t_id:
+                cursor.execute("SELECT id FROM tasks WHERE id = ?", (t_id,))
+                exists = cursor.fetchone()
+                if exists:
+                    cursor.execute("""
+                        UPDATE tasks
+                        SET title = ?, status = ?, priority = ?, priority_score = ?,
+                            deadline_dt = ?, has_time = ?, completed_at = ?, rolled_over_count = ?
+                        WHERE id = ?
+                    """, (title, status, prio, prio_score, deadline_dt, has_time, completed_at, rolled_over_count, t_id))
+                    continue
+
+            # Insert if not existing
+            cursor.execute("""
+                INSERT INTO tasks (
+                    raw_text, title, deadline_dt, has_time, priority, priority_score,
+                    status, created_at, completed_at, rolled_over_count, last_rolled_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                t.get('raw_text', title),
+                title,
+                deadline_dt,
+                has_time,
+                prio,
+                prio_score,
+                status,
+                created_at,
+                completed_at,
+                rolled_over_count,
+                t.get('last_rolled_at')
+            ))
+        conn.commit()
+    return get_tasks(status='all')
