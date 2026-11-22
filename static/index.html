@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Prioritask — Smart Daily To-Do</title>
+  <title>Prioritask</title>
+  
   <!-- Apple Web App & Mobile Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Prioritask">
-  <meta name="theme-color" content="#4f46e5">
+  <meta name="theme-color" content="#000000">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Inter font -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -24,16 +26,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
           }
         }
       }
@@ -41,325 +34,207 @@
   </script>
   <style>
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", system-ui, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
     .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+      display: none;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.4);
-      border-radius: 9999px;
+    .custom-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
     .task-enter {
-      animation: slideIn 0.25s ease-out forwards;
+      animation: iosSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
+    @keyframes iosSlideIn {
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    .ios-blur {
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
     }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+<body class="bg-[#f8f9fa] dark:bg-black text-slate-900 dark:text-zinc-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white transition-colors duration-200">
 
-  <!-- Top App Navigation -->
-  <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
-    <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-sm shadow-indigo-500/30">
-          <i class="fa-solid fa-bolt-lightning text-sm"></i>
+  <!-- iOS Minimalist Top Header -->
+  <header class="sticky top-0 z-30 bg-[#f8f9fa]/90 dark:bg-black/85 ios-blur border-b border-slate-200/60 dark:border-white/[0.08] px-4 pt-3 pb-3">
+    <div class="max-w-xl mx-auto flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold tracking-tight text-slate-950 dark:text-white">Today</h1>
+          <span id="active-badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">0 tasks</span>
         </div>
-        <div>
-          <h1 class="text-base font-bold tracking-tight flex items-center gap-1.5">
-            Prioritask
-            <span class="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400">NLP & 10PM Rollover</span>
-          </h1>
-          <p id="system-time" class="text-xs text-slate-500 dark:text-slate-400 font-medium">Loading time...</p>
-        </div>
+        <p id="system-time" class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Sunday, Nov 22</p>
       </div>
 
-      <div class="flex items-center space-x-2">
-        <!-- Rollover simulation button -->
-        <button onclick="triggerRollover(true)" title="Run 10 PM Rollover immediately to test morning planning" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/70 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80 transition-all active:scale-95">
-          <i class="fa-solid fa-moon text-indigo-500"></i>
-          <span class="hidden sm:inline">10 PM Rollover</span>
-          <span class="sm:hidden">Roll</span>
+      <div class="flex items-center gap-1.5">
+        <!-- Quiet sync/refresh icon -->
+        <button onclick="triggerRollover(true)" title="Sync / Refresh" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition active:scale-90">
+          <i class="fa-solid fa-arrows-rotate text-xs"></i>
         </button>
-
-        <!-- Dark mode toggle -->
-        <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-          <i id="theme-icon" class="fa-solid fa-moon"></i>
+        <!-- Dark mode switch -->
+        <button onclick="toggleDarkMode()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition active:scale-90">
+          <i id="theme-icon" class="fa-solid fa-moon text-xs"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-6 space-y-6">
+  <!-- Main Mobile Container -->
+  <main class="flex-1 max-w-xl w-full mx-auto px-4 py-3.5 space-y-3.5">
 
-    <!-- 10 PM Rollover Status Banner -->
-    <div id="rollover-banner" class="rounded-2xl p-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200/60 dark:border-indigo-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div class="flex items-start space-x-3">
-        <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
-          <i class="fa-solid fa-clock-rotate-left text-sm"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Nightly Auto-Rollover</span>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">Active @ 10:00 PM</span>
-          </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-            Unfinished tasks roll over to tomorrow nightly with a prioritized morning plan.
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-indigo-200/40 dark:border-indigo-900/40">
-        <div class="text-right">
-          <div class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Countdown</div>
-          <div id="countdown-text" class="text-sm font-bold text-slate-800 dark:text-slate-100 font-mono">--:--</div>
-        </div>
-        <button onclick="triggerRollover()" class="px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-semibold shadow hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-95 transition">
-          Test 10 PM Rollover
-        </button>
-      </div>
-    </div>
-
-    <!-- Morning Plan Drawer/Card (Collapsible or Expandable) -->
-    <section id="morning-plan-card" class="hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300">
-      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-gradient-to-r from-amber-500/5 to-indigo-500/5">
-        <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+    <!-- Today's Morning Snapshot (Apple Widget Style) -->
+    <section id="morning-plan-card" class="hidden rounded-3xl bg-white dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.08] p-4 shadow-sm relative overflow-hidden transition-all duration-300">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
             <i class="fa-solid fa-sun"></i>
           </div>
           <div>
-            <h2 id="plan-title" class="text-sm font-bold tracking-tight text-slate-900 dark:text-white">Morning Prioritised Plan</h2>
-            <p id="plan-date" class="text-xs text-slate-500 dark:text-slate-400">Generated for tomorrow</p>
+            <h2 id="plan-title" class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">Today's Focus</h2>
           </div>
         </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="togglePlanDetails()" id="plan-toggle-btn" class="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-            <span id="plan-toggle-text">Show Details</span> <i id="plan-toggle-icon" class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
-          </button>
-        </div>
+        <button onclick="togglePlanDetails()" class="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 text-xs flex items-center gap-1 font-medium transition">
+          <span id="plan-toggle-text">Details</span>
+          <i id="plan-toggle-icon" class="fa-solid fa-chevron-down text-[10px]"></i>
+        </button>
       </div>
 
-      <div class="p-4 sm:p-5 space-y-4">
-        <!-- Summary Alert -->
-        <div id="plan-summary" class="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 font-medium leading-relaxed">
-          Loading plan summary...
+      <!-- Compact Big 3 List -->
+      <div class="pt-3 space-y-2">
+        <div id="big-three-list" class="space-y-1.5">
+          <!-- Big 3 focus items dynamically rendered here -->
         </div>
 
-        <!-- The Big Three Focus -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <i class="fa-solid fa-fire text-rose-500"></i> The Morning Big 3 Focus
-            </span>
-            <span class="text-[11px] text-slate-400">Highest leverage first</span>
-          </div>
-          <div id="big-three-list" class="space-y-2">
-            <!-- Big three items rendered here -->
-          </div>
-        </div>
-
-        <!-- Collapsible Schedule Breakdown -->
-        <div id="plan-breakdown" class="hidden pt-3 border-t border-slate-100 dark:border-slate-800 space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <!-- Morning Slot -->
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800">
-              <div class="text-xs font-bold text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5">
-                <i class="fa-regular fa-sun text-[11px]"></i> Morning (9 - 12)
-              </div>
-              <div id="block-morning" class="space-y-1.5 text-xs"></div>
-            </div>
-            <!-- Afternoon Slot -->
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800">
-              <div class="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-1.5">
-                <i class="fa-solid fa-cloud-sun text-[11px]"></i> Afternoon (12 - 5)
-              </div>
-              <div id="block-afternoon" class="space-y-1.5 text-xs"></div>
-            </div>
-            <!-- Evening Slot -->
-            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800">
-              <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1 flex items-center gap-1.5">
-                <i class="fa-solid fa-moon text-[11px]"></i> Evening (5 - 8)
-              </div>
-              <div id="block-evening" class="space-y-1.5 text-xs"></div>
-            </div>
-          </div>
-
-          <!-- Productivity Tip -->
-          <div id="plan-tip" class="text-xs text-slate-500 dark:text-slate-400 italic bg-amber-500/5 p-2.5 rounded-lg border border-amber-500/20 flex items-center gap-2">
-            <i class="fa-regular fa-lightbulb text-amber-500"></i>
+        <!-- Collapsible Details -->
+        <div id="plan-breakdown" class="hidden pt-3 border-t border-slate-100 dark:border-white/[0.06] space-y-2 text-xs">
+          <p id="plan-summary" class="text-slate-600 dark:text-zinc-400 leading-relaxed font-medium"></p>
+          <div id="plan-tip" class="flex items-center gap-2 text-amber-700 dark:text-amber-400/90 bg-amber-500/10 p-2.5 rounded-2xl font-medium">
+            <i class="fa-regular fa-lightbulb text-xs"></i>
             <span id="plan-tip-text"></span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Natural Language Task Input Card -->
-    <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-3">
-      <div class="flex items-center justify-between">
-        <label for="task-input" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-          <i class="fa-solid fa-plus text-indigo-500"></i> Quick Add in Plain English
-        </label>
-        <span class="text-[11px] text-slate-400 hidden sm:inline">Press Enter ↵ to save</span>
-      </div>
-
+    <!-- Ultra-Clean Quick Add Bar (Apple / Linear style) -->
+    <section class="rounded-2xl bg-white dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.08] shadow-sm p-2 transition-all">
       <form id="add-task-form" onsubmit="handleAddTask(event)" class="relative">
         <div class="relative flex items-center">
+          <i class="fa-solid fa-plus text-slate-400 dark:text-zinc-500 text-xs ml-3 mr-2.5 pointer-events-none"></i>
           <input
             type="text"
             id="task-input"
             autocomplete="off"
-            placeholder='e.g. "call CA Friday 4pm, high" or "submit tax return tomorrow 5:30 pm, p1"'
+            placeholder="Add task... (e.g. call CA Friday 4pm, high)"
             oninput="handleInputLivePreview(this.value)"
-            class="w-full pl-4 pr-12 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-medium transition"
+            class="w-full py-2 pr-10 bg-transparent text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-medium focus:outline-none"
           />
           <button
             type="submit"
             id="submit-task-btn"
-            class="absolute right-2.5 w-8 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+            class="w-7 h-7 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition active:scale-95 disabled:opacity-30 disabled:pointer-events-none flex-shrink-0"
           >
             <i class="fa-solid fa-arrow-up text-xs"></i>
           </button>
         </div>
       </form>
 
-      <!-- Real-time Live Parsing Preview -->
-      <div id="live-preview-box" class="hidden p-3 rounded-xl bg-slate-100/70 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 transition">
-        <div class="flex items-center justify-between text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
-          <span><i class="fa-solid fa-wand-magic-sparkles text-indigo-500 mr-1"></i> Live Parser Interpretation:</span>
-          <span class="text-indigo-600 dark:text-indigo-400 font-normal">Auto-detected</span>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 pt-0.5">
-          <!-- Clean title -->
-          <div class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium">
-            <span class="text-slate-400 text-[10px]">TASK:</span>
-            <span id="preview-title" class="text-slate-800 dark:text-slate-200"></span>
-          </div>
-          <!-- Deadline -->
-          <div id="preview-deadline-badge" class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-medium text-slate-700 dark:text-slate-300">
-            <i class="fa-regular fa-calendar-check text-indigo-500"></i>
-            <span id="preview-deadline"></span>
-          </div>
-          <!-- Priority badge -->
-          <div id="preview-priority-badge" class="flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold text-[11px]">
-            <i class="fa-solid fa-flag text-[10px]"></i>
-            <span id="preview-priority"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Plain-English Example Chips -->
-      <div class="pt-1">
-        <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Try sample phrases:</div>
-        <div class="flex flex-wrap gap-1.5">
-          <button type="button" onclick="fillExample('call CA Friday 4pm, high')" class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/70 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 transition text-left">
-            "call CA Friday 4pm, high"
-          </button>
-          <button type="button" onclick="fillExample('submit tax return tomorrow 5:30 pm, p1')" class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/70 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 transition text-left">
-            "submit tax return tomorrow 5:30 pm, p1"
-          </button>
-          <button type="button" onclick="fillExample('buy groceries at 7pm urgent')" class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/70 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 transition text-left">
-            "buy groceries at 7pm urgent"
-          </button>
-          <button type="button" onclick="fillExample('dentist appointment next monday 10am')" class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/70 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 transition text-left">
-            "dentist appointment next monday 10am"
-          </button>
-        </div>
+      <!-- Live Parser Chip Preview (Appears organically below input as you type) -->
+      <div id="live-preview-box" class="hidden mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.06] flex flex-wrap items-center gap-1.5 text-xs">
+        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 mr-1">Parsed:</span>
+        <span id="preview-title" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 font-medium text-slate-800 dark:text-zinc-200"></span>
+        <span id="preview-deadline" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1"></span>
+        <span id="preview-priority-badge" class="px-2 py-0.5 rounded-md font-bold uppercase text-[10px]"></span>
       </div>
     </section>
 
-    <!-- Task List Controls & Filters -->
-    <div class="space-y-3">
-      <!-- Tabs and Sort Row -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <!-- Filter Tabs -->
-        <div class="flex items-center space-x-1 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar text-xs font-semibold">
-          <button onclick="setFilter('pending')" id="tab-pending" class="filter-tab px-3 py-1.5 rounded-lg bg-indigo-600 text-white whitespace-nowrap transition">
-            To-Do <span id="count-pending" class="ml-1 opacity-80 text-[11px]"></span>
+    <!-- iOS Native-Style Segmented Filter Tabs -->
+    <div class="space-y-3 pt-0.5">
+      <div class="flex items-center justify-between gap-2">
+        <!-- Segmented Tab Picker -->
+        <div class="flex items-center p-1 rounded-xl bg-slate-200/70 dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] text-xs font-semibold overflow-x-auto custom-scrollbar flex-1">
+          <button onclick="setFilter('pending')" id="tab-pending" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm">
+            To-Do <span id="count-pending" class="text-[10px] opacity-75"></span>
           </button>
-          <button onclick="setFilter('today')" id="tab-today" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 whitespace-nowrap transition">
-            Today & Overdue <span id="count-today" class="ml-1 opacity-80 text-[11px]"></span>
+          <button onclick="setFilter('today')" id="tab-today" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+            Today <span id="count-today" class="text-[10px] opacity-75"></span>
           </button>
-          <button onclick="setFilter('tomorrow')" id="tab-tomorrow" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 whitespace-nowrap transition">
-            Tomorrow <span id="count-tomorrow" class="ml-1 opacity-80 text-[11px]"></span>
+          <button onclick="setFilter('tomorrow')" id="tab-tomorrow" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+            Tomorrow <span id="count-tomorrow" class="text-[10px] opacity-75"></span>
           </button>
-          <button onclick="setFilter('all')" id="tab-all" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 whitespace-nowrap transition">
-            All <span id="count-all" class="ml-1 opacity-80 text-[11px]"></span>
-          </button>
-          <button onclick="setFilter('completed')" id="tab-completed" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 whitespace-nowrap transition">
-            Done <span id="count-completed" class="ml-1 opacity-80 text-[11px]"></span>
+          <button onclick="setFilter('completed')" id="tab-completed" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+            Done <span id="count-completed" class="text-[10px] opacity-75"></span>
           </button>
         </div>
 
-        <!-- Sort Dropdown -->
-        <div class="flex items-center space-x-2 self-end sm:self-auto">
-          <label for="sort-select" class="text-xs text-slate-500 font-medium hidden sm:inline">Sort:</label>
-          <div class="relative">
-            <select
-              id="sort-select"
-              onchange="handleSortChange(this.value)"
-              class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold pl-2.5 pr-7 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              <option value="deadline_priority">Deadline & Priority</option>
-              <option value="priority_deadline">Priority First (High → Low)</option>
-              <option value="deadline_asc">Deadline (Soonest First)</option>
-              <option value="created_desc">Newest Added</option>
-            </select>
-            <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none"></i>
-          </div>
+        <!-- Sort Selector -->
+        <div class="relative flex-shrink-0">
+          <select
+            id="sort-select"
+            onchange="handleSortChange(this.value)"
+            class="appearance-none bg-slate-200/70 dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] rounded-xl text-xs font-semibold pl-2.5 pr-6 py-1.5 text-slate-700 dark:text-zinc-300 focus:outline-none"
+          >
+            <option value="deadline_priority">Priority & Deadline</option>
+            <option value="priority_deadline">Priority First</option>
+            <option value="deadline_asc">Soonest First</option>
+            <option value="created_desc">Newest Added</option>
+          </select>
+          <i class="fa-solid fa-arrow-down-short-wide absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 dark:text-zinc-500 pointer-events-none"></i>
         </div>
       </div>
 
-      <!-- Task Items Container -->
+      <!-- Task Items List -->
       <div id="tasks-container" class="space-y-2">
-        <!-- Rendered tasks go here -->
+        <!-- Rendered task cards -->
       </div>
 
       <!-- Empty State -->
-      <div id="empty-state" class="hidden py-12 text-center rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-300 dark:border-slate-800 p-6">
-        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
-          <i class="fa-solid fa-check-double text-lg"></i>
+      <div id="empty-state" class="hidden py-14 text-center rounded-3xl bg-white dark:bg-[#141417] border border-dashed border-slate-200 dark:border-white/[0.08] p-6">
+        <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 dark:bg-white/[0.05] flex items-center justify-center text-slate-400 dark:text-zinc-500 mb-2.5">
+          <i class="fa-solid fa-circle-check text-base"></i>
         </div>
-        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">No tasks in this view</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Type in plain English above to add a task!</p>
+        <h3 class="text-sm font-bold text-slate-800 dark:text-zinc-200">All caught up!</h3>
+        <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Add a task above in plain English.</p>
       </div>
     </div>
 
   </main>
 
   <!-- Edit Task Modal -->
-  <div id="edit-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/60 ios-blur hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#18181c] rounded-3xl max-w-sm w-full p-5 border border-slate-200 dark:border-white/[0.1] shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">Edit Task</h3>
-        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-          <i class="fa-solid fa-xmark"></i>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Edit Task</h3>
+        <button onclick="closeEditModal()" class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white">
+          <i class="fa-solid fa-xmark text-xs"></i>
         </button>
       </div>
 
       <input type="hidden" id="edit-task-id">
 
       <div>
-        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Title</label>
-        <input type="text" id="edit-task-title" class="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+        <label class="block text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase mb-1">Title</label>
+        <input type="text" id="edit-task-title" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-white/[0.08] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500">
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Priority</label>
-          <select id="edit-task-priority" class="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-sm">
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase mb-1">Priority</label>
+          <select id="edit-task-priority" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-white/[0.08] text-xs font-semibold">
             <option value="high">High</option>
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Status</label>
-          <select id="edit-task-status" class="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-sm">
+          <label class="block text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase mb-1">Status</label>
+          <select id="edit-task-status" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-white/[0.08] text-xs font-semibold">
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
           </select>
@@ -367,85 +242,82 @@
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Deadline Date & Time</label>
-        <input type="datetime-local" id="edit-task-deadline" class="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-sm">
+        <label class="block text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase mb-1">Deadline Date & Time</label>
+        <input type="datetime-local" id="edit-task-deadline" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-white/[0.08] text-xs font-semibold">
       </div>
 
-      <div class="flex justify-end space-x-2 pt-2">
-        <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Cancel</button>
-        <button type="button" onclick="saveEditTask()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow">Save Changes</button>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeEditModal()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-zinc-400 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800">Cancel</button>
+        <button type="button" onclick="saveEditTask()" class="px-4 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm">Save</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 px-4 py-3 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xl text-xs font-semibold">
-    <i id="toast-icon" class="fa-solid fa-circle-check text-indigo-400"></i>
+  <!-- Minimal iOS Notification Toast -->
+  <div id="toast" class="fixed bottom-6 inset-x-0 mx-auto max-w-fit z-50 transform translate-y-16 opacity-0 transition-all duration-300 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 dark:bg-zinc-800/90 text-white ios-blur shadow-lg border border-white/10 text-xs font-semibold pointer-events-none">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
     <span id="toast-message">Task updated</span>
   </div>
 
   <!-- Application Logic -->
   <script>
-    let currentFilter = 'pending'; // Default view: active To-Do tasks only!
+    let currentFilter = 'pending';
     let currentSort = 'deadline_priority';
     let tasksList = [];
     let debounceTimer = null;
 
-    // Local-First Storage Helpers
+    // Local Storage helpers
     function saveLocalTasks(tasks) {
       try {
-        localStorage.setItem('prioritask_tasks_v2', JSON.stringify(tasks));
-      } catch (e) {
-        console.error('LocalStorage write failed:', e);
-      }
+        localStorage.setItem('prioritask_tasks_v3', JSON.stringify(tasks));
+      } catch (e) {}
     }
 
     function getLocalTasks() {
       try {
-        const raw = localStorage.getItem('prioritask_tasks_v2');
+        const raw = localStorage.getItem('prioritask_tasks_v3');
         return raw ? JSON.parse(raw) : null;
       } catch (e) {
         return null;
       }
     }
 
-    // Initialize application
+    // App Initialization
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
-      
-      // 1. Instant local render from phone memory
-      const cachedTasks = getLocalTasks();
-      if (cachedTasks && cachedTasks.length > 0) {
-        tasksList = cachedTasks;
+
+      // Instant local render
+      const cached = getLocalTasks();
+      if (cached && cached.length > 0) {
+        tasksList = cached;
         updateTabBadges();
         filterAndRenderTasks();
       }
 
-      // 2. Fetch server updates & sync
       fetchStatus();
       fetchTasks();
       fetchLatestPlan();
-      setInterval(fetchStatus, 15000); // Poll clock & countdown every 15s
+      setInterval(fetchStatus, 30000);
     });
 
-    // Dark Mode Handling
+    // Dark Mode
     function initTheme() {
       if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
-        document.getElementById('theme-icon').className = 'fa-solid fa-sun';
+        document.getElementById('theme-icon').className = 'fa-solid fa-sun text-xs';
       } else {
         document.documentElement.classList.remove('dark');
-        document.getElementById('theme-icon').className = 'fa-solid fa-moon';
+        document.getElementById('theme-icon').className = 'fa-solid fa-moon text-xs';
       }
     }
 
     function toggleDarkMode() {
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-sun text-xs' : 'fa-solid fa-moon text-xs';
     }
 
-    // Show Toast
+    // Toast
     function showToast(msg, icon = 'fa-circle-check text-emerald-400') {
       const toast = document.getElementById('toast');
       const toastMsg = document.getElementById('toast-message');
@@ -453,75 +325,88 @@
 
       toastMsg.textContent = msg;
       toastIcon.className = `fa-solid ${icon}`;
-      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.remove('translate-y-16', 'opacity-0');
 
       setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 3500);
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2500);
     }
 
-    // Update counts on filter tabs
+    // Tab badges
     function updateTabBadges() {
       const pendingCount = tasksList.filter(t => t.status === 'pending').length;
       const completedCount = tasksList.filter(t => t.status === 'completed').length;
-      const totalCount = tasksList.length;
+
+      const todayStr = new Date().toDateString();
+      const todayCount = tasksList.filter(t => {
+        if (t.status === 'completed') return false;
+        if (!t.deadline_dt) return true;
+        const d = new Date(t.deadline_dt);
+        return d.toDateString() === todayStr || d < new Date();
+      }).length;
+
+      const tomorrowDate = new Date();
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      const tomorrowStr = tomorrowDate.toDateString();
+      const tomorrowCount = tasksList.filter(t => {
+        if (t.status === 'completed') return false;
+        if (!t.deadline_dt) return false;
+        return new Date(t.deadline_dt).toDateString() === tomorrowStr;
+      }).length;
 
       const countPendingEl = document.getElementById('count-pending');
+      const countTodayEl = document.getElementById('count-today');
+      const countTomorrowEl = document.getElementById('count-tomorrow');
       const countCompletedEl = document.getElementById('count-completed');
-      const countAllEl = document.getElementById('count-all');
+      const activeBadgeEl = document.getElementById('active-badge');
 
       if (countPendingEl) countPendingEl.textContent = `(${pendingCount})`;
+      if (countTodayEl) countTodayEl.textContent = `(${todayCount})`;
+      if (countTomorrowEl) countTomorrowEl.textContent = `(${tomorrowCount})`;
       if (countCompletedEl) countCompletedEl.textContent = `(${completedCount})`;
-      if (countAllEl) countAllEl.textContent = `(${totalCount})`;
+      if (activeBadgeEl) activeBadgeEl.textContent = `${pendingCount} active`;
     }
 
-    // Status & 10 PM Countdown
+    // Status
     async function fetchStatus() {
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
         document.getElementById('system-time').textContent = data.local_time_display;
-        document.getElementById('countdown-text').textContent = data.countdown_display;
-      } catch (err) {
-        console.error('Failed to load status:', err);
-      }
+      } catch (err) {}
     }
 
-    // Fetch and Sync Tasks with Server
+    // Fetch and Sync
     async function fetchTasks() {
       try {
         const res = await fetch(`/api/tasks?sort_by=${currentSort}&status=all`);
         const data = await res.json();
         const serverTasks = data.tasks || [];
 
-        // Smart merge: merge server tasks with local completed statuses
         const localTasks = getLocalTasks() || [];
         const localMap = new Map(localTasks.map(t => [t.id, t]));
 
         let merged = [];
-        let needsServerSync = false;
+        let needsSync = false;
 
         if (serverTasks.length === 0 && localTasks.length > 0) {
-          // Server restarted or DB wiped on cloud free tier!
           merged = localTasks;
-          needsServerSync = true;
+          needsSync = true;
         } else {
-          // Merge: respect local completion if user marked done on device
           merged = serverTasks.map(st => {
             const lt = localMap.get(st.id);
             if (lt && lt.status === 'completed' && st.status !== 'completed') {
-              needsServerSync = true;
+              needsSync = true;
               return { ...st, status: 'completed' };
             }
             return st;
           });
 
-          // Check if local had tasks not yet on server
           const serverIds = new Set(serverTasks.map(t => t.id));
           for (const lt of localTasks) {
             if (!serverIds.has(lt.id)) {
               merged.push(lt);
-              needsServerSync = true;
+              needsSync = true;
             }
           }
         }
@@ -531,12 +416,10 @@
         updateTabBadges();
         filterAndRenderTasks();
 
-        // If local had newer state than cloud container, sync to server in background
-        if (needsServerSync) {
+        if (needsSync) {
           syncToServer(tasksList);
         }
       } catch (err) {
-        console.warn('Network offline or server sleeping, using local tasks:', err);
         const cached = getLocalTasks();
         if (cached) {
           tasksList = cached;
@@ -553,12 +436,10 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tasks })
         });
-      } catch (e) {
-        console.warn('Background sync deferred:', e);
-      }
+      } catch (e) {}
     }
 
-    // Filter tasks for current active tab
+    // Filter and Render
     function filterAndRenderTasks() {
       let filtered = [...tasksList];
       const todayStr = new Date().toDateString();
@@ -567,10 +448,8 @@
       const tomorrowStr = tomorrowDate.toDateString();
 
       if (currentFilter === 'pending') {
-        // Active To-Do list: only pending tasks!
         filtered = filtered.filter(t => t.status === 'pending');
       } else if (currentFilter === 'completed') {
-        // Done tab: only completed tasks!
         filtered = filtered.filter(t => t.status === 'completed');
       } else if (currentFilter === 'today') {
         filtered = filtered.filter(t => {
@@ -586,9 +465,8 @@
           return new Date(t.deadline_dt).toDateString() === tomorrowStr;
         });
       }
-      // 'all' shows all tasks
 
-      // Client-side Sort
+      // Sort
       if (currentSort === 'priority_deadline') {
         filtered.sort((a, b) => (b.priority_score || 2) - (a.priority_score || 2));
       } else if (currentSort === 'deadline_asc') {
@@ -608,7 +486,7 @@
       renderTasks(filtered);
     }
 
-    // Render task cards
+    // Render Cards
     function renderTasks(tasks) {
       const container = document.getElementById('tasks-container');
       const emptyState = document.getElementById('empty-state');
@@ -624,24 +502,24 @@
         const card = document.createElement('div');
         const isDone = task.status === 'completed';
         card.id = `task-card-${task.id}`;
-        card.className = `task-enter rounded-xl p-3.5 sm:p-4 bg-white dark:bg-slate-900 border transition-all duration-300 flex items-start justify-between gap-3 ${
+        card.className = `task-enter rounded-2xl p-3 bg-white dark:bg-[#141417] border transition-all duration-200 flex items-center justify-between gap-3 ${
           isDone
-            ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/40 border-slate-200/50 dark:border-slate-800/50'
-            : 'border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-800'
+            ? 'opacity-40 bg-slate-50 dark:bg-zinc-900/40 border-slate-200/50 dark:border-white/[0.03]'
+            : 'border-slate-200/80 dark:border-white/[0.08] shadow-sm hover:border-indigo-400 dark:hover:border-zinc-700'
         }`;
 
-        // Priority Badge styling
-        let prioBadge = '';
+        // Priority subtle tag
+        let prioDot = '';
         if (task.priority === 'high') {
-          prioBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/80 flex items-center gap-1"><i class="fa-solid fa-flag text-[9px]"></i> High</span>`;
+          prioDot = `<span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1.5 py-0.5 rounded-md border border-rose-200/60 dark:border-rose-900/60">High</span>`;
         } else if (task.priority === 'low') {
-          prioBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">Low</span>`;
+          prioDot = `<span class="inline-flex items-center text-[10px] font-semibold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-white/[0.06] px-1.5 py-0.5 rounded-md">Low</span>`;
         } else {
-          prioBadge = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/80">Med</span>`;
+          prioDot = `<span class="inline-flex items-center text-[10px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-900/60">Med</span>`;
         }
 
-        // Deadline styling & urgency calculation
-        let deadlineBadge = '';
+        // Deadline label
+        let deadlineLabel = '';
         if (task.deadline_dt) {
           const deadlineObj = new Date(task.deadline_dt);
           const nowObj = new Date();
@@ -651,69 +529,62 @@
           tomorrowObj.setDate(nowObj.getDate() + 1);
           const isTomorrow = deadlineObj.toDateString() === tomorrowObj.toDateString();
 
-          let timeStr = '';
-          if (task.has_time) {
-            timeStr = deadlineObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          }
+          let timeStr = task.has_time ? deadlineObj.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
 
           let dateLabel = '';
-          if (isToday) dateLabel = 'Today ' + timeStr;
-          else if (isTomorrow) dateLabel = 'Tomorrow ' + timeStr;
+          if (isToday) dateLabel = 'Today' + (timeStr ? ` ${timeStr}` : '');
+          else if (isTomorrow) dateLabel = 'Tomorrow' + (timeStr ? ` ${timeStr}` : '');
           else dateLabel = deadlineObj.toLocaleDateString([], { month: 'short', day: 'numeric' }) + (timeStr ? ` ${timeStr}` : '');
 
           if (isOverdue) {
-            deadlineBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-2 py-0.5 rounded-md border border-rose-200/60 dark:border-rose-900/50"><i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Overdue (${dateLabel})</span>`;
+            deadlineLabel = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-500 dark:text-rose-400"><i class="fa-solid fa-clock text-[10px]"></i> Overdue (${dateLabel})</span>`;
           } else if (isToday) {
-            deadlineBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-900/50"><i class="fa-regular fa-clock text-[10px]"></i> ${dateLabel}</span>`;
+            deadlineLabel = `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400"><i class="fa-regular fa-clock text-[10px]"></i> ${dateLabel}</span>`;
           } else {
-            deadlineBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/70 px-2 py-0.5 rounded-md"><i class="fa-regular fa-calendar text-[10px]"></i> ${dateLabel}</span>`;
+            deadlineLabel = `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-zinc-400">${dateLabel}</span>`;
           }
         }
 
         // Rolled over badge
-        let rolledBadge = '';
+        let rolledTag = '';
         if (task.rolled_over_count > 0 && !isDone) {
-          rolledBadge = `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800" title="Rolled over by 10 PM scheduler"><i class="fa-solid fa-arrows-rotate text-[9px]"></i> Rolled ${task.rolled_over_count}x</span>`;
+          rolledTag = `<span class="text-[10px] font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 px-1.5 py-0.5 rounded-md border border-purple-200/50 dark:border-purple-900/50">↺ ${task.rolled_over_count}x</span>`;
         }
 
         card.innerHTML = `
-          <div class="flex items-start space-x-3 flex-1 min-w-0">
-            <!-- Checkbox -->
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <!-- iOS Circular Checkbox -->
             <button
               onclick="toggleTaskStatus(${task.id}, '${task.status}')"
-              class="mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${
+              class="w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 transition-all ${
                 isDone
                   ? 'bg-emerald-500 border-emerald-500 text-white'
-                  : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 text-transparent'
+                  : 'border-slate-300 dark:border-zinc-700 hover:border-indigo-500 text-transparent'
               }"
             >
               <i class="fa-solid fa-check text-[10px]"></i>
             </button>
 
-            <!-- Task Info -->
+            <!-- Task Description & Meta -->
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold tracking-tight truncate ${isDone ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}">
-                  ${escapeHtml(task.title)}
-                </span>
+              <div class="text-[13px] font-semibold tracking-tight leading-snug truncate ${isDone ? 'line-through text-slate-400 dark:text-zinc-500' : 'text-slate-900 dark:text-zinc-100'}">
+                ${escapeHtml(task.title)}
               </div>
-
-              <!-- Metadata pills -->
-              <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                ${prioBadge}
-                ${deadlineBadge}
-                ${rolledBadge}
+              <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                ${prioDot}
+                ${deadlineLabel}
+                ${rolledTag}
               </div>
             </div>
           </div>
 
-          <!-- Actions -->
-          <div class="flex items-center space-x-1 flex-shrink-0">
-            <button onclick="openEditModal(${task.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-              <i class="fa-regular fa-pen-to-square text-xs"></i>
+          <!-- Subtle Action Buttons -->
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button onclick="openEditModal(${task.id})" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/10 transition">
+              <i class="fa-regular fa-pen-to-square text-[11px]"></i>
             </button>
-            <button onclick="deleteTaskItem(${task.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
-              <i class="fa-regular fa-trash-can text-xs"></i>
+            <button onclick="deleteTaskItem(${task.id})" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+              <i class="fa-regular fa-trash-can text-[11px]"></i>
             </button>
           </div>
         `;
@@ -721,7 +592,7 @@
       });
     }
 
-    // Live preview parsing as user types
+    // Input preview
     function handleInputLivePreview(text) {
       clearTimeout(debounceTimer);
       const previewBox = document.getElementById('live-preview-box');
@@ -747,32 +618,26 @@
 
           document.getElementById('preview-title').textContent = parsed.title || text;
 
-          // Format deadline
-          let dlStr = 'Today 10:00 PM (Default)';
+          let dlStr = 'Today';
           if (parsed.deadline_dt) {
             const d = new Date(parsed.deadline_dt);
-            const timeStr = parsed.has_time ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-            dlStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', weekday: 'short' }) + (timeStr ? ` at ${timeStr}` : '');
+            const timeStr = parsed.has_time ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+            dlStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + (timeStr ? ` ${timeStr}` : '');
           }
-          document.getElementById('preview-deadline').textContent = dlStr;
+          document.getElementById('preview-deadline').innerHTML = `<i class="fa-regular fa-clock text-[9px]"></i> ${dlStr}`;
 
-          // Format priority badge
           const prioEl = document.getElementById('preview-priority-badge');
-          const prioText = document.getElementById('preview-priority');
-          prioText.textContent = parsed.priority.toUpperCase();
-
+          prioEl.textContent = parsed.priority.toUpperCase();
           if (parsed.priority === 'high') {
-            prioEl.className = 'flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold text-[11px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300';
+            prioEl.className = 'px-1.5 py-0.5 rounded-md font-bold uppercase text-[10px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300';
           } else if (parsed.priority === 'low') {
-            prioEl.className = 'flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold text-[11px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+            prioEl.className = 'px-1.5 py-0.5 rounded-md font-bold uppercase text-[10px] bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300';
           } else {
-            prioEl.className = 'flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold text-[11px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300';
+            prioEl.className = 'px-1.5 py-0.5 rounded-md font-bold uppercase text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300';
           }
 
           previewBox.classList.remove('hidden');
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) {}
       }, 150);
     }
 
@@ -796,7 +661,7 @@
         if (data.success) {
           input.value = '';
           document.getElementById('live-preview-box').classList.add('hidden');
-          showToast(`Task created: "${data.task.title}"`);
+          showToast(`Added: ${data.task.title}`);
           tasksList.unshift(data.task);
           saveLocalTasks(tasksList);
           updateTabBadges();
@@ -804,52 +669,38 @@
           fetchStatus();
         }
       } catch (err) {
-        showToast('Error creating task', 'fa-circle-xmark text-rose-400');
+        showToast('Error adding task', 'fa-circle-xmark text-rose-400');
       } finally {
         submitBtn.disabled = false;
         input.focus();
       }
     }
 
-    // Fill sample prompt
-    function fillExample(phrase) {
-      const input = document.getElementById('task-input');
-      input.value = phrase;
-      handleInputLivePreview(phrase);
-      input.focus();
-    }
-
-    // Toggle Task Status (complete / pending)
+    // Toggle Task Status
     async function toggleTaskStatus(id, currentStatus) {
       const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
 
-      // Update in memory & localStorage immediately
       const task = tasksList.find(t => t.id === id);
       if (task) {
         task.status = newStatus;
-        if (newStatus === 'completed') {
-          task.completed_at = new Date().toISOString();
-        } else {
-          task.completed_at = null;
-        }
+        task.completed_at = newStatus === 'completed' ? new Date().toISOString() : null;
       }
       saveLocalTasks(tasksList);
       updateTabBadges();
 
-      // If user is on the active 'pending' (To-Do) tab, smooth fade then remove from view
       const card = document.getElementById(`task-card-${id}`);
       if (card && currentFilter === 'pending' && newStatus === 'completed') {
-        card.style.transition = 'all 0.25s ease';
-        card.style.opacity = '0.3';
-        card.style.transform = 'scale(0.97)';
+        card.style.transition = 'all 0.22s ease';
+        card.style.opacity = '0.2';
+        card.style.transform = 'scale(0.96)';
         setTimeout(() => {
           filterAndRenderTasks();
-        }, 250);
+        }, 220);
       } else {
         filterAndRenderTasks();
       }
 
-      showToast(newStatus === 'completed' ? 'Task completed! Moved to Done tab.' : 'Task reopened');
+      showToast(newStatus === 'completed' ? 'Completed! Moved to Done.' : 'Reopened');
 
       try {
         await fetch(`/api/tasks/${id}`, {
@@ -857,9 +708,7 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ status: newStatus })
         });
-      } catch (e) {
-        console.warn('Status saved on device, server sync queued:', e);
-      }
+      } catch (e) {}
       fetchStatus();
     }
 
@@ -873,21 +722,19 @@
       showToast('Task deleted');
       try {
         await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
       fetchStatus();
     }
 
-    // Filter and Sort Changes
+    // Filter Change
     function setFilter(filter) {
       currentFilter = filter;
       document.querySelectorAll('.filter-tab').forEach(btn => {
-        btn.className = 'filter-tab px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 whitespace-nowrap transition';
+        btn.className = 'filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white';
       });
       const activeBtn = document.getElementById(`tab-${filter}`);
       if (activeBtn) {
-        activeBtn.className = 'filter-tab px-3 py-1.5 rounded-lg bg-indigo-600 text-white whitespace-nowrap transition';
+        activeBtn.className = 'filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm';
       }
       filterAndRenderTasks();
     }
@@ -897,23 +744,21 @@
       filterAndRenderTasks();
     }
 
-    // 10 PM Rollover Simulation
+    // Rollover
     async function triggerRollover(manual = false) {
       try {
         const res = await fetch('/api/plans/rollover', { method: 'POST' });
         const data = await res.json();
         if (data.success) {
-          showToast(`10 PM Rollover complete! ${data.plan.rolled_tasks_count} tasks rolled to tomorrow.`, 'fa-moon text-indigo-400');
+          showToast(`Rollover updated (${data.plan.rolled_tasks_count} rolled)`, 'fa-moon text-indigo-400');
           renderMorningPlan(data.plan);
           fetchTasks();
           fetchStatus();
         }
-      } catch (e) {
-        showToast('Rollover failed', 'fa-triangle-exclamation text-rose-400');
-      }
+      } catch (e) {}
     }
 
-    // Fetch Latest Plan
+    // Fetch Plan
     async function fetchLatestPlan() {
       try {
         const res = await fetch('/api/plans/latest');
@@ -921,60 +766,34 @@
         if (data.plan) {
           renderMorningPlan(data.plan);
         }
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     }
 
-    // Render Morning Plan Card
+    // Render Morning Plan
     function renderMorningPlan(plan) {
       if (!plan) return;
       const card = document.getElementById('morning-plan-card');
       card.classList.remove('hidden');
 
-      document.getElementById('plan-title').textContent = `Morning Prioritised Plan • ${plan.day_name || 'Tomorrow'}`;
-      document.getElementById('plan-date').textContent = plan.date_formatted ? `Generated for ${plan.date_formatted}` : `Generated at ${plan.generated_at}`;
+      const dateLabel = plan.date_formatted || plan.day_name || 'Today';
+      document.getElementById('plan-title').textContent = `Morning Focus • ${dateLabel}`;
       document.getElementById('plan-summary').textContent = plan.summary;
       document.getElementById('plan-tip-text').textContent = plan.tip || 'Tackle your high-priority items before noon.';
 
-      // Big 3
       const bigThreeList = document.getElementById('big-three-list');
       bigThreeList.innerHTML = '';
       if (plan.big_three && plan.big_three.length > 0) {
         plan.big_three.forEach((item, idx) => {
           const div = document.createElement('div');
-          div.className = 'flex items-center space-x-2.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-800 text-xs';
+          div.className = 'flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/50 dark:border-white/[0.04] text-xs';
           div.innerHTML = `
-            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px] flex-shrink-0">${idx + 1}</span>
-            <span class="font-semibold text-slate-800 dark:text-slate-200 truncate flex-1">${escapeHtml(item.title)}</span>
-            <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${item.priority === 'high' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-slate-200 dark:bg-slate-700'}">${item.priority}</span>
+            <span class="w-4 h-4 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[9px] flex-shrink-0">${idx + 1}</span>
+            <span class="font-semibold text-slate-800 dark:text-zinc-200 truncate flex-1">${escapeHtml(item.title)}</span>
+            <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${item.priority === 'high' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-slate-200 dark:bg-zinc-800'}">${item.priority}</span>
           `;
           bigThreeList.appendChild(div);
         });
-      } else {
-        bigThreeList.innerHTML = `<div class="text-xs text-slate-400 italic">No tasks queued for tomorrow yet. Add some above!</div>`;
       }
-
-      // Schedule blocks
-      const blocks = plan.schedule_blocks || {};
-      renderBlockItems('block-morning', blocks.morning);
-      renderBlockItems('block-afternoon', blocks.afternoon);
-      renderBlockItems('block-evening', blocks.evening);
-    }
-
-    function renderBlockItems(elId, items) {
-      const el = document.getElementById(elId);
-      el.innerHTML = '';
-      if (!items || items.length === 0) {
-        el.innerHTML = `<span class="text-slate-400 italic">Clear block</span>`;
-        return;
-      }
-      items.forEach(it => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'truncate text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1.5';
-        itemDiv.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${it.priority === 'high' ? 'bg-rose-500' : 'bg-indigo-500'}"></span> <span class="truncate">${escapeHtml(it.title)}</span>`;
-        el.appendChild(itemDiv);
-      });
     }
 
     function togglePlanDetails() {
@@ -984,12 +803,12 @@
 
       if (breakdown.classList.contains('hidden')) {
         breakdown.classList.remove('hidden');
-        toggleText.textContent = 'Hide Details';
-        toggleIcon.className = 'fa-solid fa-chevron-up ml-1 text-[10px]';
+        toggleText.textContent = 'Hide';
+        toggleIcon.className = 'fa-solid fa-chevron-up text-[10px]';
       } else {
         breakdown.classList.add('hidden');
-        toggleText.textContent = 'Show Details';
-        toggleIcon.className = 'fa-solid fa-chevron-down ml-1 text-[10px]';
+        toggleText.textContent = 'Details';
+        toggleIcon.className = 'fa-solid fa-chevron-down text-[10px]';
       }
     }
 
@@ -1004,7 +823,6 @@
       document.getElementById('edit-task-status').value = task.status;
 
       if (task.deadline_dt) {
-        // Format for datetime-local input YYYY-MM-DDTHH:mm
         const dt = new Date(task.deadline_dt);
         const isoLocal = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         document.getElementById('edit-task-deadline').value = isoLocal;
@@ -1042,6 +860,20 @@
         has_time = true;
       }
 
+      const task = tasksList.find(t => String(t.id) === String(id));
+      if (task) {
+        task.title = title;
+        task.priority = priority;
+        task.status = status;
+        task.deadline_dt = deadline_dt;
+        task.has_time = has_time;
+      }
+      saveLocalTasks(tasksList);
+      updateTabBadges();
+      filterAndRenderTasks();
+      closeEditModal();
+      showToast('Task updated');
+
       try {
         await fetch(`/api/tasks/${id}`, {
           method: 'PUT',
@@ -1054,13 +886,8 @@
             has_time
           })
         });
-        closeEditModal();
-        showToast('Task updated successfully');
-        fetchTasks();
-        fetchStatus();
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
+      fetchStatus();
     }
 
     function escapeHtml(text) {
