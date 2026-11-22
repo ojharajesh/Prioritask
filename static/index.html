@@ -66,10 +66,10 @@
     <div class="max-w-xl mx-auto flex items-center justify-between">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-xl font-bold tracking-tight text-slate-950 dark:text-white">Today</h1>
-          <span id="active-badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">0 tasks</span>
+          <h1 class="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">Today</h1>
+          <span id="active-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400">0 active</span>
         </div>
-        <p id="system-time" class="text-xs text-slate-500 dark:text-zinc-400 font-medium">Sunday, Nov 22</p>
+        <p id="system-time" class="text-[13px] text-slate-500 dark:text-zinc-400 font-medium mt-0.5">Sunday, Nov 22</p>
       </div>
 
       <div class="flex items-center gap-1.5">
@@ -126,14 +126,14 @@
     <section class="rounded-2xl bg-white dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.08] shadow-sm p-2 transition-all">
       <form id="add-task-form" onsubmit="handleAddTask(event)" class="relative">
         <div class="relative flex items-center">
-          <i class="fa-solid fa-plus text-slate-400 dark:text-zinc-500 text-xs ml-3 mr-2.5 pointer-events-none"></i>
+          <i class="fa-solid fa-plus text-slate-400 dark:text-zinc-400 text-sm ml-3 mr-2.5 pointer-events-none"></i>
           <input
             type="text"
             id="task-input"
             autocomplete="off"
             placeholder="Add task... (e.g. call CA Friday 4pm, high)"
             oninput="handleInputLivePreview(this.value)"
-            class="w-full py-2 pr-10 bg-transparent text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-medium focus:outline-none"
+            class="w-full py-2 pr-10 bg-transparent text-[14px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 font-medium focus:outline-none"
           />
           <button
             type="submit"
@@ -147,7 +147,7 @@
 
       <!-- Live Parser Chip Preview (Appears organically below input as you type) -->
       <div id="live-preview-box" class="hidden mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.06] flex flex-wrap items-center gap-1.5 text-xs">
-        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 mr-1">Parsed:</span>
+        <span class="text-[11px] uppercase font-bold text-slate-400 dark:text-zinc-500 mr-1">Parsed:</span>
         <span id="preview-title" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 font-medium text-slate-800 dark:text-zinc-200"></span>
         <span id="preview-deadline" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1"></span>
         <span id="preview-priority-badge" class="px-2 py-0.5 rounded-md font-bold uppercase text-[10px]"></span>
@@ -158,18 +158,18 @@
     <div class="space-y-3 pt-0.5">
       <div class="flex items-center justify-between gap-2">
         <!-- Segmented Tab Picker -->
-        <div class="flex items-center p-1 rounded-xl bg-slate-200/70 dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] text-xs font-semibold overflow-x-auto custom-scrollbar flex-1">
-          <button onclick="setFilter('pending')" id="tab-pending" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm">
-            To-Do <span id="count-pending" class="text-[10px] opacity-75"></span>
+        <div class="flex items-center p-1 rounded-xl bg-slate-200/70 dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] text-[13px] font-semibold overflow-x-auto custom-scrollbar flex-1">
+          <button onclick="setFilter('pending')" id="tab-pending" class="filter-tab flex-1 py-1.5 px-2.5 rounded-lg text-center transition whitespace-nowrap bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-sm">
+            To-Do <span id="count-pending" class="text-[11px] opacity-75"></span>
           </button>
-          <button onclick="setFilter('today')" id="tab-today" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
-            Today <span id="count-today" class="text-[10px] opacity-75"></span>
+          <button onclick="setFilter('today')" id="tab-today" class="filter-tab flex-1 py-1.5 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+            Today <span id="count-today" class="text-[11px] opacity-75"></span>
           </button>
-          <button onclick="setFilter('tomorrow')" id="tab-tomorrow" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
-            Tomorrow <span id="count-tomorrow" class="text-[10px] opacity-75"></span>
+          <button onclick="setFilter('tomorrow')" id="tab-tomorrow" class="filter-tab flex-1 py-1.5 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+            Tomorrow <span id="count-tomorrow" class="text-[11px] opacity-75"></span>
           </button>
-          <button onclick="setFilter('completed')" id="tab-completed" class="filter-tab flex-1 py-1 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
-            Done <span id="count-completed" class="text-[10px] opacity-75"></span>
+          <button onclick="setFilter('completed')" id="tab-completed" class="filter-tab flex-1 py-1.5 px-2.5 rounded-lg text-center transition whitespace-nowrap text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white">
+            Done <span id="count-completed" class="text-[11px] opacity-75"></span>
           </button>
         </div>
 
@@ -178,7 +178,7 @@
           <select
             id="sort-select"
             onchange="handleSortChange(this.value)"
-            class="appearance-none bg-slate-200/70 dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] rounded-xl text-xs font-semibold pl-2.5 pr-6 py-1.5 text-slate-700 dark:text-zinc-300 focus:outline-none"
+            class="appearance-none bg-slate-200/70 dark:bg-[#141417] border border-slate-200/80 dark:border-white/[0.06] rounded-xl text-xs font-semibold pl-2.5 pr-6 py-2 text-slate-700 dark:text-zinc-300 focus:outline-none"
           >
             <option value="deadline_priority">Priority & Deadline</option>
             <option value="priority_deadline">Priority First</option>
@@ -556,10 +556,10 @@
             <!-- iOS Circular Checkbox -->
             <button
               onclick="toggleTaskStatus(${task.id}, '${task.status}')"
-              class="w-6 h-6 rounded-full border flex items-center justify-center flex-shrink-0 transition-all ${
+              class="w-[24px] h-[24px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all ${
                 isDone
                   ? 'bg-emerald-500 border-emerald-500 text-white'
-                  : 'border-slate-300 dark:border-zinc-700 hover:border-indigo-500 text-transparent'
+                  : 'border-slate-300 dark:border-zinc-600 hover:border-indigo-500 text-transparent'
               }"
             >
               <i class="fa-solid fa-check text-[10px]"></i>
@@ -567,10 +567,10 @@
 
             <!-- Task Description & Meta -->
             <div class="min-w-0 flex-1">
-              <div class="text-[13px] font-semibold tracking-tight leading-snug truncate ${isDone ? 'line-through text-slate-400 dark:text-zinc-500' : 'text-slate-900 dark:text-zinc-100'}">
+              <div class="text-[15px] font-semibold tracking-tight leading-snug truncate ${isDone ? 'line-through text-slate-400 dark:text-zinc-500' : 'text-slate-900 dark:text-white'}">
                 ${escapeHtml(task.title)}
               </div>
-              <div class="flex flex-wrap items-center gap-1.5 mt-1">
+              <div class="flex flex-wrap items-center gap-2 mt-1">
                 ${prioDot}
                 ${deadlineLabel}
                 ${rolledTag}
@@ -579,7 +579,7 @@
           </div>
 
           <!-- Subtle Action Buttons -->
-          <div class="flex items-center gap-1 flex-shrink-0">
+          <div class="flex items-center gap-0.5 flex-shrink-0">
             <button onclick="openEditModal(${task.id})" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/10 transition">
               <i class="fa-regular fa-pen-to-square text-[11px]"></i>
             </button>
@@ -791,12 +791,19 @@
       bigThreeList.innerHTML = '';
       if (plan.big_three && plan.big_three.length > 0) {
         plan.big_three.forEach((item, idx) => {
+          const prioLabel = item.priority === 'high' ? 'High' : (item.priority === 'low' ? 'Low' : 'Med');
+          const prioStyle = item.priority === 'high'
+            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+            : (item.priority === 'low'
+              ? 'bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400'
+              : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300');
+
           const div = document.createElement('div');
-          div.className = 'flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/50 dark:border-white/[0.04] text-xs';
+          div.className = 'flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/50 dark:border-white/[0.04]';
           div.innerHTML = `
-            <span class="w-4 h-4 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[9px] flex-shrink-0">${idx + 1}</span>
-            <span class="font-semibold text-slate-800 dark:text-zinc-200 truncate flex-1">${escapeHtml(item.title)}</span>
-            <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${item.priority === 'high' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-slate-200 dark:bg-zinc-800'}">${item.priority}</span>
+            <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px] flex-shrink-0">${idx + 1}</span>
+            <span class="text-[14px] font-semibold text-slate-900 dark:text-white truncate flex-1">${escapeHtml(item.title)}</span>
+            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md flex-shrink-0 ${prioStyle}">${prioLabel}</span>
           `;
           bigThreeList.appendChild(div);
         });
