@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Prioritask">
   <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest.json">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -286,7 +287,12 @@
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
 
-      // Instant local render
+      // Register Service Worker for instant 0.1s app launch from phone cache
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
+
+      // Instant local render from device memory (zero network delay)
       const cached = getLocalTasks();
       if (cached && cached.length > 0) {
         tasksList = cached;

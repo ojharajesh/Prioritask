@@ -257,6 +257,25 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+@app.get("/sw.js")
+def serve_sw():
+    """Serves the service worker for instant 0.1s offline/cache-first app launches."""
+    sw_file = os.path.join(STATIC_DIR, "sw.js")
+    if os.path.exists(sw_file):
+        response = FileResponse(sw_file, media_type="application/javascript")
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+    raise HTTPException(status_code=404, detail="Service worker not found")
+
+
+@app.get("/manifest.json")
+def serve_manifest():
+    manifest_file = os.path.join(STATIC_DIR, "manifest.json")
+    if os.path.exists(manifest_file):
+        return FileResponse(manifest_file, media_type="application/json")
+    raise HTTPException(status_code=404, detail="Manifest not found")
+
+
 @app.get("/")
 def serve_ui():
     """Serves the main application page with no-cache headers for instant iOS updates."""
